@@ -2,12 +2,25 @@
     <div class="box">
         <div class="card-drawer">
             <div id="title">
-                <h2>Card Drawer</h2>
+                <img src="/src/assets/images/logo-archenemy.png" alt="Card Drawer Logo" class="logo" />
             </div>
-            <div class="buttons-select" v-if="!isDrawingSession">
-                <button @click="filteredTabs.forEach(tab => tab.selected = true)">Select All</button>
-                <button @click="filteredTabs.forEach(tab => tab.selected = false)">Unselect All</button>
-                <div>
+
+            <div  v-if="!isDrawingSession" id="buttons-select">
+
+                <div id="search-bar" class="search-bar">
+                    <input 
+                        type="text" 
+                        v-model="searchQuery" 
+                        placeholder="Search for a card..." 
+                        @input="filteredTabs" 
+                    />
+                </div>
+
+                <div class="buttons-select">
+                    
+                    <button @click="filteredTabs.forEach(tab => tab.selected = true)">Select All</button>
+                    <button @click="filteredTabs.forEach(tab => tab.selected = false)">Unselect All</button>
+                
                     <label>
                         <input type="checkbox" v-model="showDCIPromos" @change="unselect_DCI" />
                         DCI Promos
@@ -20,11 +33,16 @@
                         <input type="checkbox" v-model="showDuskmourn" @change="unselect_Duskmourn" />
                         Duskmourn
                     </label>
-                    <h3>selected: {{ 
-                        tabs.filter(tab => tab.selected).length 
-                    }}</h3>
                 </div>
+
+                <h3> There is : 
+                    {{ 
+                        tabs.filter(tab => tab.selected).length 
+                    }} 
+                    cards selected
+                </h3>
             </div>
+
             <div class="card-container" v-if="!isDrawingSession">
                 <div
                     v-for="tab in filteredTabs" 
@@ -45,7 +63,6 @@
 
             <div v-else>
                 <div v-if="currentCard">
-                    <h3>Drawn Card</h3>
                     <div class="card drawn-card" @click="toggleOverlay(currentCard)">
                         <img :src="currentCard.link" :alt="currentCard.name" />
                         <p>{{ currentCard.name }}</p>
@@ -55,7 +72,6 @@
                         <button @click="isDrawingSession = false">Stop Drawing</button>
                     </div>
                     <div class="history">
-                    <h3>Drawn Cards History</h3>
                     <div class="card-container" v-if="drawnCards.length > 1">
                         <div 
                             v-for="tab in drawnCards.slice(0, -1).reverse()" 
@@ -120,17 +136,21 @@ export default {
             showDCIPromos: true,
             showNicolBolas: true,
             showDuskmourn: true,
+            searchQuery: '',
         };
     },
     computed: {
         filteredTabs() {
-            return this.tabs.filter(tab => {
-                if (tab.extention === "DCI Promos" && !this.showDCIPromos) return false;
-                if (tab.extention === "Nicol Bolas" && !this.showNicolBolas) return false;
-                if (tab.extention === "Duskmourn" && !this.showDuskmourn) return false;
-                return true;
-            });
-        }
+        return this.tabs.filter(tab => {
+            const matchesSearch = tab.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+            const matchesFilter = 
+                (tab.extention === "DCI Promos" && this.showDCIPromos) ||
+                (tab.extention === "Nicol Bolas" && this.showNicolBolas) ||
+                (tab.extention === "Duskmourn" && this.showDuskmourn);
+
+            return matchesSearch && matchesFilter;
+        });
+    }
     },
     methods: {
         selectCard(tab) {
@@ -196,11 +216,25 @@ export default {
 
 <style scoped>
 
+@font-face {
+    font-family: 'MTGFont';
+    src: url('/src/assets/fonts/MTGFont.ttf') format('truetype');
+}
+
 #title {
     text-align: center;
-    font-size: 2em;
+    font-size: 3em;
     color: #ffffff;
     margin-bottom: 20px;
+    font-family: 'MTGFont';
+}
+
+h3 {
+    text-align: right;
+    font-size: 1em;
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-family: 'MTGFont';
 }
 
 .box {
@@ -273,7 +307,7 @@ button {
     display: block;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 50px;
+    margin-top: 10px;
 }
 
 button:hover {
@@ -321,5 +355,27 @@ button:hover {
     font-weight: bold;
     
 }
+
+.search-bar {
+    justify-content: center;
+    margin-bottom: 20px;
+    text-align: right;
+    margin-top: 50px;
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 2px solid #007bff;
+    transition: border-color 0.3s ease-in-out;
+}
+
+.search-bar input:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+
 
 </style>
