@@ -1,18 +1,43 @@
 <template>
     <div class="box">
         <div class="card-drawer">
-            <h2>Card Drawer</h2>
+            <div id="title">
+                <h2>Card Drawer</h2>
+            </div>
+            <div class="buttons-select" v-if="!isDrawingSession">
+                <button @click="filteredTabs.forEach(tab => tab.selected = true)">Select All</button>
+                <button @click="filteredTabs.forEach(tab => tab.selected = false)">Unselect All</button>
+                <div>
+                    <label>
+                        <input type="checkbox" v-model="showDCIPromos" @change="unselect_DCI" />
+                        DCI Promos
+                    </label>
+                    <label>
+                        <input type="checkbox" v-model="showNicolBolas" @change="unselect_NicolBolas" />
+                        Nicol Bolas
+                    </label>
+                    <label>
+                        <input type="checkbox" v-model="showDuskmourn" @change="unselect_Duskmourn" />
+                        Duskmourn
+                    </label>
+                    <h3>selected: {{ 
+                        tabs.filter(tab => tab.selected).length 
+                    }}</h3>
+                </div>
+            </div>
             <div class="card-container" v-if="!isDrawingSession">
-                <div 
-                    v-for="tab in tabs" 
-                    :key="tab.id" 
+                <div
+                    v-for="tab in filteredTabs" 
+                    :key="tab.id"
                     class="card" 
                     :class="{ sombre: !tab.selected }"
                     @dblclick="toggleOverlay(tab)"
                     @click="selectCard(tab)"
                 >
                     <img :src="tab.link" :alt="tab.name" />
-                    <p>{{ tab.name }}</p>
+                    <div id="name-of-cards">
+                        <p>{{ tab.name }}</p>
+                    </div>
                 </div>
             </div>
 
@@ -25,10 +50,45 @@
                         <img :src="currentCard.link" :alt="currentCard.name" />
                         <p>{{ currentCard.name }}</p>
                     </div>
-                    <button @click="drawNextCard">Draw Next Card</button>
+                    <div class="buttons-drawings">
+                        <button @click="drawNextCard">Draw Next Card</button>
+                        <button @click="isDrawingSession = false">Stop Drawing</button>
+                    </div>
+                    <div class="history">
+                    <h3>Drawn Cards History</h3>
+                    <div class="card-container" v-if="drawnCards.length > 1">
+                        <div 
+                            v-for="tab in drawnCards.slice(0, -1).reverse()" 
+                            :key="tab.id" 
+                            class="card" 
+                            @click="toggleOverlay(tab)"
+                        >
+                            <img :src="tab.link" :alt="tab.name" />
+                            <p>{{ tab.name }}</p>
+                        </div>
+                    </div>
+
+                </div>
                 </div>
                 <div v-else>
-                    <h3>No more cards to draw!</h3>
+                    <div class="buttons-drawings">
+                        <button @click="isDrawingSession = false">Return to menu</button>
+                    </div>
+                    <div class="history">
+                    <h3>Drawn Cards History</h3>
+                    <div class="card-container" v-if="drawnCards.length > 1">
+                        <div 
+                            v-for="tab in drawnCards.reverse()" 
+                            :key="tab.id" 
+                            class="card" 
+                            @click="toggleOverlay(tab)"
+                        >
+                            <img :src="tab.link" :alt="tab.name" />
+                            <p>{{ tab.name }}</p>
+                        </div>
+                    </div>
+
+                </div>
                 </div>
             </div>
         </div>
@@ -43,38 +103,34 @@
 
 
 <script>
+import cardsData from '../../cards.json';
 export default {
     name: 'CardDrawer',
     data() {
         return {
-            tabs: [
-                { id: 1, name: 'Tab 1', link: 'https://media.wizards.com/2023/one/fr_779a9d966c.png', selected: true },
-                { id: 2, name: 'Tab 2', link: 'https://c0.lestechnophiles.com/www.numerama.com/wp-content/uploads/2023/09/champion-magic-erudit-faerie.png?resize=265,370&key=2665460e', selected: true },
-                { id: 3, name: 'Tab 3', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 4, name: 'Tab 4', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 5, name: 'Tab 5', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 6, name: 'Tab 6', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 7, name: 'Tab 7', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 8, name: 'Tab 8', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 9, name: 'Tab 9', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 10, name: 'Tab 10', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 11, name: 'Tab 11', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 12, name: 'Tab 12', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 13, name: 'Tab 13', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 14, name: 'Tab 14', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 15, name: 'Tab 15', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 16, name: 'Tab 16', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 17, name: 'Tab 17', link: 'https://picsum.photos/733/1024', selected: true },
-                { id: 18, name: 'Tab 18', link: 'https://picsum.photos/733/1024', selected: true }
-            ],
+            tabs: cardsData.tabs,
             selectedTabs: [],
             isDrawingSession: false,
             deck: [],
             currentCardIndex: 0,
             currentCard: null,
             isOverlayVisible: false,
-            overlayCard: null
+            overlayCard: null,
+            drawnCards: [],
+            showDCIPromos: true,
+            showNicolBolas: true,
+            showDuskmourn: true,
         };
+    },
+    computed: {
+        filteredTabs() {
+            return this.tabs.filter(tab => {
+                if (tab.extention === "DCI Promos" && !this.showDCIPromos) return false;
+                if (tab.extention === "Nicol Bolas" && !this.showNicolBolas) return false;
+                if (tab.extention === "Duskmourn" && !this.showDuskmourn) return false;
+                return true;
+            });
+        }
     },
     methods: {
         selectCard(tab) {
@@ -86,12 +142,14 @@ export default {
             // Mélange les cartes sélectionnées
             this.deck = this.shuffleArray([...this.selectedTabs]);
             this.currentCardIndex = 0;
+            this.drawnCards = [];
             this.isDrawingSession = true; // Démarre la session de dessin
             this.drawNextCard(); // Affiche la première carte
         },
         drawNextCard() {
             if (this.currentCardIndex < this.deck.length) {
                 this.currentCard = this.deck[this.currentCardIndex];
+                this.drawnCards.push(this.currentCard);
                 this.currentCardIndex++;
             } else {
                 this.currentCard = null; // Aucune carte à tirer
@@ -108,6 +166,27 @@ export default {
         toggleOverlay(card) {
             this.overlayCard = card; // Définit la carte pour l'overlay
             this.isOverlayVisible = !this.isOverlayVisible; // Change l'état de l'overlay
+        },
+        unselect_DCI() {
+            this.tabs.forEach(tab => {
+                if (tab.extention === "DCI Promos") {
+                    tab.selected = false;
+                }
+            });
+        },
+        unselect_NicolBolas() {
+            this.tabs.forEach(tab => {
+                if (tab.extention === "Nicol Bolas") {
+                    tab.selected = false;
+                }
+            });
+        },
+        unselect_Duskmourn() {
+            this.tabs.forEach(tab => {
+                if (tab.extention === "Duskmourn") {
+                    tab.selected = false;
+                }
+            });
         }
     }
 }
@@ -116,6 +195,13 @@ export default {
 
 
 <style scoped>
+
+#title {
+    text-align: center;
+    font-size: 2em;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
 
 .box {
     margin: 0 auto;
@@ -145,7 +231,7 @@ export default {
     border-radius: 10px;
     padding: 10px;
     width: 150px;
-    height: 235px;
+    height: 245px;
     text-align: center;
     transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
     background-color: #cbcbcb;
@@ -208,12 +294,32 @@ button:hover {
 }
 
 .zoomed-image {
-    width: 90vw;
+    width: flex;
     height: 90vh;
     object-fit: contain;
-    border: none;
-    border-radius: 5px;
+    border: transparent;
+    border-radius: 36px;
     cursor: pointer;
+}
+
+.buttons-select {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;   
+}
+
+.buttons-drawings {
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    
+}
+
+#name-of-cards {
+    font-size: 0.8em;
+    font-weight: bold;
+    
 }
 
 </style>
