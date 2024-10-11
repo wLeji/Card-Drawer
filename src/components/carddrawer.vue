@@ -8,19 +8,17 @@
             <div  v-if="!isDrawingSession" id="buttons-select">
 
                 <div id="search-bar" class="search-bar">
-                    <input 
-                        type="text" 
-                        v-model="searchQuery" 
-                        placeholder="Search for a card..." 
-                        @input="filteredTabs" 
+                    <input
+                        type="text"
+                        v-model="searchQuery"
+                        placeholder="Search for a card..."
+                        @input="filteredTabs"
                     />
                 </div>
 
                 <div class="buttons-select">
-                    
                     <button @click="filteredTabs.forEach(tab => tab.selected = true)">Select All</button>
-                    <button @click="filteredTabs.forEach(tab => tab.selected = false)">Unselect All</button>
-                
+
                     <label>
                         <input type="checkbox" v-model="showDCIPromos" @change="unselect_DCI" />
                         DCI Promos
@@ -33,21 +31,23 @@
                         <input type="checkbox" v-model="showDuskmourn" @change="unselect_Duskmourn" />
                         Duskmourn
                     </label>
+
+                    <button @click="filteredTabs.forEach(tab => tab.selected = false)">Unselect All</button>
                 </div>
 
-                <h3> There is : 
-                    {{ 
-                        tabs.filter(tab => tab.selected).length 
-                    }} 
+                <h3 style="font-family: 'Quicksand'"> There is :
+                    {{
+                        tabs.filter(tab => tab.selected).length
+                    }}
                     cards selected
                 </h3>
             </div>
 
             <div class="card-container" v-if="!isDrawingSession">
                 <div
-                    v-for="tab in filteredTabs" 
+                    v-for="tab in filteredTabs"
                     :key="tab.id"
-                    class="card" 
+                    class="card"
                     :class="{ sombre: !tab.selected }"
                     @dblclick="toggleOverlay(tab)"
                     @click="selectCard(tab)"
@@ -73,10 +73,10 @@
                     </div>
                     <div class="history">
                     <div class="card-container" v-if="drawnCards.length > 1">
-                        <div 
-                            v-for="tab in drawnCards.slice(0, -1).reverse()" 
-                            :key="tab.id" 
-                            class="card" 
+                        <div
+                            v-for="tab in drawnCards.slice(0, -1).reverse()"
+                            :key="tab.id"
+                            class="card"
                             @click="toggleOverlay(tab)"
                         >
                             <img :src="tab.link" :alt="tab.name" />
@@ -93,10 +93,10 @@
                     <div class="history">
                     <h3>Drawn Cards History</h3>
                     <div class="card-container" v-if="drawnCards.length > 1">
-                        <div 
-                            v-for="tab in drawnCards.reverse()" 
-                            :key="tab.id" 
-                            class="card" 
+                        <div
+                            v-for="tab in drawnCards.reverse()"
+                            :key="tab.id"
+                            class="card"
                             @click="toggleOverlay(tab)"
                         >
                             <img :src="tab.link" :alt="tab.name" />
@@ -143,7 +143,7 @@ export default {
         filteredTabs() {
         return this.tabs.filter(tab => {
             const matchesSearch = tab.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-            const matchesFilter = 
+            const matchesFilter =
                 (tab.extention === "DCI Promos" && this.showDCIPromos) ||
                 (tab.extention === "Nicol Bolas" && this.showNicolBolas) ||
                 (tab.extention === "Duskmourn" && this.showDuskmourn);
@@ -216,10 +216,17 @@ export default {
 
 <style scoped>
 
-@font-face {
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+body, * {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+}
+
+/* @font-face {
     font-family: 'MTGFont';
     src: url('/src/assets/fonts/MTGFont.ttf') format('truetype');
-}
+} */
 
 #title {
     text-align: center;
@@ -240,11 +247,25 @@ h3 {
 .box {
     margin: 0 auto;
     padding: 20px;
-    background-color: #333;
+    position: relative;
     max-width: 1200px;
     border: 2px solid #444;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(51, 51, 51, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: -1;
+    border-radius: 10px;
 }
 
 .card-drawer {
@@ -257,7 +278,7 @@ h3 {
     gap: 20px;
     justify-content: center;
     margin-top: 30px;
-    
+
 }
 
 .card {
@@ -328,10 +349,10 @@ button:hover {
 }
 
 .zoomed-image {
-    width: flex;
+    width: auto;
     height: 90vh;
     object-fit: contain;
-    border: transparent;
+    border: none;
     border-radius: 36px;
     cursor: pointer;
 }
@@ -340,26 +361,34 @@ button:hover {
     display: flex;
     justify-content: center;
     gap: 20px;
-    margin-bottom: 20px;   
+    margin-bottom: 20px;  
+}
+
+.buttons-select button:first-child {
+    margin-right: auto;
+}
+
+.buttons-select button:last-child {
+    margin-left: auto;
 }
 
 .buttons-drawings {
     justify-content: center;
     gap: 20px;
     margin-top: 20px;
-    
+
 }
 
 #name-of-cards {
     font-size: 0.8em;
     font-weight: bold;
-    
+
 }
 
 .search-bar {
     justify-content: center;
     margin-bottom: 20px;
-    text-align: right;
+    text-align: center;
     margin-top: 50px;
 }
 
